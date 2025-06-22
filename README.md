@@ -7,7 +7,7 @@ A lightweight WordPress plugin that outputs cleaner profile blocks using a short
 ## 🔧 Features
 
 - ✅ **Shortcode Output:**  
-  Use `[cleaner_profile file="/wp-content/uploads/data.csv"]` to display a responsive Tailwind-styled table of cleaner profiles.
+  Use `[cleaner_profile file="/wp-content/uploads/data.csv" rows_per_page="5"]` to display a responsive Tailwind-styled table of cleaner profiles.
 
 - ✅ **Data Source:**  
   Reads cleaner profiles from a CSV file, with semicolon-delimited fields (acting like a JSON array per row).
