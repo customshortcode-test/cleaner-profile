@@ -122,8 +122,8 @@ function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
 
     echo '<nav class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4">';
     echo '<span class="text-sm font-normal text-gray-500 mb-4 md:mb-0 block w-full md:inline md:w-auto">';
-    echo 'Showing <span class="font-semibold text-gray-400">' . esc_html($from) . '-' . esc_html($to) . '</span> of ';
-    echo '<span class="font-semibold text-gray-900">' . esc_html($total_items) . '</span>';
+    echo 'Showing <span class="font-semibold text-gray-500">' . esc_html($from) . '-' . esc_html($to) . '</span> of ';
+    echo '<span class="font-semibold text-gray-500">' . esc_html($total_items) . '</span>';
     echo '</span>';
 
     echo '<ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8 list-none">';
