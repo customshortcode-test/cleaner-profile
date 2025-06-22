@@ -38,6 +38,7 @@ Text Domain: cleanerprofiles
 function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
     $atts = shortcode_atts([
         'file' => '',
+        'rows_per_page' => 10,
     ], $atts);
 
     if (empty($atts['file'])) return '<p>No CSV file specified.</p>';
@@ -50,7 +51,7 @@ function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
         if (is_wp_error($response)) return '<p>Failed to fetch CSV file.</p>';
         $lines = explode("\n", wp_remote_retrieve_body($response));
     } else {
-        $filepath = ABSPATH . $atts['file'];
+        $filepath = ABSPATH . ltrim($atts['file'], '/'); // Fix in case path starts with /
         if (!file_exists($filepath)) return '<p>CSV file not found.</p>';
         $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     }
@@ -63,6 +64,13 @@ function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
 
     $headers = $rows[0];
     $data_rows = array_slice($rows, 1);
+
+    $page = isset($_GET['cp_page']) ? max(1, intval($_GET['cp_page'])) : 1;
+    $per_page = intval($atts['rows_per_page']);
+    $total_items = count($data_rows) + 1;
+    $total_pages = ceil($total_items / $per_page);
+    $start = ($page - 1) * $per_page;
+    $paginated_rows = array_slice($data_rows, $start, $per_page);
 
     ob_start();
     ?>
@@ -77,7 +85,7 @@ function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($data_rows as $row): ?>
+                <?php foreach ($paginated_rows as $row): ?>
                     <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
                         <?php for ($i = 1; $i < count($row); $i++): ?>
                             <td class="px-6 py-4">
@@ -97,6 +105,51 @@ function cleaner_profile_display_tailwind_csv_table_with_images($atts) {
         </table>
     </div>
     <?php
+    $current_url = esc_url_raw(add_query_arg(null, null)); // Get current full URL
+    $base_url = remove_query_arg('cp_page', $current_url); // Only remove cp_page
+                        
+    // Pagination summary
+    if ($total_items > 0) {
+        $from = $start + 1;
+        $to = min($start + $per_page, $total_items);
+    } else {
+        $from = 0;
+        $to = 0;
+    }
+
+    $current_url = esc_url_raw(add_query_arg(null, null)); // Get full URL
+    $base_url = remove_query_arg('cp_page', $current_url); // Remove cp_page param only
+
+    echo '<nav class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4">';
+    echo '<span class="text-sm font-normal text-gray-500 mb-4 md:mb-0 block w-full md:inline md:w-auto">';
+    echo 'Showing <span class="font-semibold text-gray-400">' . esc_html($from) . '-' . esc_html($to) . '</span> of ';
+    echo '<span class="font-semibold text-gray-900">' . esc_html($total_items) . '</span>';
+    echo '</span>';
+
+    echo '<ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8 list-none">';
+
+    // Previous
+    if ($page > 1) {
+        echo '<li><a href="' . esc_url(add_query_arg('cp_page', $page - 1, $base_url)) . '" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700">Previous</a></li>';
+    }
+
+    for ($i = 1; $i <= $total_pages; $i++) {
+        $active = ($i == $page);
+        $classes = $active
+            ? 'text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700'
+            : 'leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700';
+        echo '<li><a href="' . esc_url(add_query_arg('cp_page', $i, $base_url)) . '" class="flex items-center justify-center px-3 h-8 ' . $classes . '">' . $i . '</a></li>';
+    }
+
+    // Next
+    if ($page < $total_pages) {
+        echo '<li><a href="' . esc_url(add_query_arg('cp_page', $page + 1, $base_url)) . '" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700">Next</a></li>';
+    }
+
+    echo '</ul>';
+    echo '</nav>';
+
+    // ✅ FIXED: Return the buffered output instead of echoing it at the top of the page
     return ob_get_clean();
 }
 add_shortcode('cleaner_profile', 'cleaner_profile_display_tailwind_csv_table_with_images');
