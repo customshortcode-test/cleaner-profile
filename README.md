@@ -40,7 +40,7 @@ A lightweight WordPress plugin that outputs cleaner profile blocks using a short
 Add the shortcode to any post, page, or widget block:
 
 ```php
-[cleaner_profile file="/wp-content/uploads/data.csv"]
+[cleaner_profile file="/wp-content/uploads/data.csv" rows_per_page="5"]
 ```
 
 ---
